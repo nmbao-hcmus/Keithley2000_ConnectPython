@@ -1,77 +1,90 @@
-# Buổi 2 — Python, PySerial và dữ liệu từ thiết bị đo
+# HƯỚNG DẪN THỰC HÀNH: GIAO TIẾP THIẾT BỊ ĐO KEITHLEY 2000 BẰNG PYTHON
 
-Repository này chứa các ví dụ Python dùng trong buổi thực hành về cổng COM/serial, lệnh SCPI, ghi dữ liệu CSV và hàng đợi lỗi.
+Repository này chứa mã nguồn Python dùng trong buổi thực hành về **cổng COM/Serial, lệnh điều khiển SCPI, ghi dữ liệu CSV và hàng đợi lỗi SCPI**.
 
-> **Phạm vi:** Repository chỉ gồm mã Python; không chứa mã nguồn Arduino hoặc firmware. Arduino/mô hình thực hành tại lớp đã được chuẩn bị sẵn, không cần nạp firmware. Một số phản hồi SCPI của mô hình thực hành có thể khác thiết bị Keithley Model 2000 thật.
+## 1. Tải và mở mã nguồn trong VS Code
 
-## Lấy mã nguồn
+1. Trên trang GitHub, nhấn **Code → Download ZIP**.
+2. Tải và giải nén tệp ZIP. Nếu repository tên `Keithley2000_ConnectPython` và nhánh chính là `main`, thư mục giải nén thường có tên `Keithley2000_ConnectPython-main`.
+3. Mở **Visual Studio Code**.
+4. Chọn **File → Open Folder…** và mở toàn bộ thư mục project vừa giải nén.
 
-Trên trang GitHub, chọn **Code → Download ZIP**, tải và giải nén. Trong VS Code, chọn **File → Open Folder…** và mở thư mục `Buoi2_Python_PySerial_GitHub` vừa giải nén.
+> **Lưu ý:** Chọn **Open Folder** tại thư mục gốc của project, không mở riêng lẻ từng tệp `.py`. Như vậy Terminal và các đường dẫn tương đối sẽ trỏ đúng thư mục.
 
-Nếu không mở được repository, hãy báo giảng viên để kiểm tra link hoặc quyền truy cập.
+## 2. Cấu trúc và mục đích các tệp
 
-## Các tệp trong repository
-
-| Tệp | Mục đích |
+| Tệp | Nội dung / mục đích |
 |---|---|
-| `code/01_list_ports.py` | Liệt kê các cổng COM khả dụng. |
-| `code/02_serial_client.py` | Gửi lệnh SCPI tương tác và đọc phản hồi. |
-| `code/03_test_commands.py` | Kiểm tra một chuỗi lệnh cấu hình, truy vấn và đo. Có lệnh `*RST` đưa thiết bị về trạng thái mặc định. |
-| `code/04_log_csv.py` | Đo lặp và lưu các phản hồi hợp lệ vào CSV. |
+| `code/01_list_ports.py` | Quét và liệt kê các cổng COM mà máy tính nhận diện. |
+| `code/02_serial_client.py` | Mở kết nối serial, gửi lệnh SCPI và đọc phản hồi. |
+| `code/03_test_commands.py` | Thử một chuỗi lệnh cấu hình, truy vấn và đọc kết quả đo. |
+| `code/04_log_csv.py` | Đo lặp và lưu các phản hồi hợp lệ vào tệp CSV. |
 | `code/06_settings_and_measurement.py` | Minh họa cấu hình và truy vấn phép đo. |
-| `code/07_timed_logger.py` | Ghi các mẫu hợp lệ theo thời gian; bỏ qua timeout. |
-| `code/08_error_queue_lab.py` | Khảo sát hàng đợi lỗi SCPI bằng các lệnh thực hành. |
-| `requirements.txt` | Các thư viện Python cần thiết. |
+| `code/07_timed_logger.py` | Lấy mẫu theo khoảng thời gian và lưu các mẫu hợp lệ. |
+| `code/08_error_queue_lab.py` | Đọc và khảo sát hàng đợi lỗi SCPI bằng các lệnh thực hành. |
+| `requirements.txt` | Danh sách thư viện Python cần cài: `pyserial`, `matplotlib`. |
+| `README.md` | Hướng dẫn lấy mã nguồn, chuẩn bị thư viện và chạy ví dụ. |
+| `.gitignore` | Loại trừ môi trường ảo, cache và các tệp dữ liệu CSV khỏi Git. |
 
-Đánh số tệp theo trình tự mô-đun của học liệu; mô-đun GUI/PyQt6 không thuộc phạm vi repository này. Tệp `ve_do_thi.py` được sinh viên tạo trong phần thực hành Matplotlib nên không có sẵn ở đây.
+Tệp `ve_do_thi.py` được sinh viên tạo trong phần thực hành Matplotlib; nếu chưa có sẵn, hãy tạo theo hướng dẫn tại lớp. 
 
-## Cài thư viện của repository
+## 3. Chuẩn bị môi trường trước khi chạy code
 
-Hãy hoàn thành hướng dẫn cài đặt Python/VS Code đã được gửi riêng và chọn đúng môi trường `.venv` trong VS Code. Tại Terminal ở thư mục gốc repository, chạy:
+1. Hoàn thành cài đặt **Python 3** và **VS Code** theo thông báo hướng dẫn cài đặt đã gửi riêng.
+2. Mở Terminal trong VS Code bằng **Terminal → New Terminal** hoặc `Ctrl + ~`.
+3. Nếu đã tạo môi trường `.venv` theo hướng dẫn cài đặt, hãy chọn đúng interpreter `.venv` trong VS Code. Tại thư mục gốc của repository, cài các thư viện cần thiết:
 
 ```powershell
 python -m pip install -r requirements.txt
 ```
 
-Các thư viện được cài là `pyserial` và `matplotlib`.
+## 4. Ba cách chạy chương trình Python trong VS Code
 
-## Chạy ví dụ đầu tiên
+### Cách 1 — Nút Run
 
-Có thể chạy chương trình liệt kê cổng COM mà không gửi lệnh đo:
+1. Trong **Explorer**, mở thư mục `code/` và chọn tệp muốn chạy.
+2. Nhấn biểu tượng **Run Python File** (nút Play) ở góc trên bên phải.
+3. Kết quả sẽ xuất hiện trong **Terminal**.
+
+### Cách 2 — Menu chuột phải
+
+Nhấp chuột phải trong cửa sổ code và chọn **Run Python File in Terminal**.
+
+### Cách 3 — Chạy từ Terminal
+
+Tại thư mục gốc của project, chạy:
 
 ```powershell
 python .\code\01_list_ports.py
 ```
 
-Nếu máy chưa kết nối thiết bị USB-serial hoặc chưa có driver, danh sách cổng có thể trống; điều đó không nhất thiết là lỗi cài đặt Python.
+Thay tên tệp nếu muốn chạy ví dụ khác. Các lệnh kết nối thiết bị chỉ được chạy khi đã chọn đúng COM và được giảng viên hướng dẫn.
 
-## Chạy các ví dụ giao tiếp serial
+## 5. Chạy thử và lưu ý trong buổi thực hành
 
-Các chương trình còn lại mở cổng COM và gửi lệnh SCPI. Chỉ chạy theo hướng dẫn của giảng viên, với đúng thiết bị và cổng đã xác minh. Mặc định `COM4` chỉ là ví dụ; cần thay bằng cổng thực tế trong tệp `.py` hoặc truyền tham số `--port` cho `02_serial_client.py`.
+- **Có thể chạy thử tại nhà:** chỉ chạy `code/01_list_ports.py` để quan sát danh sách cổng COM.
+- Nếu máy chưa cắm USB-to-Serial hoặc chưa có driver, danh sách có thể trống. Điều này không nhất thiết là lỗi Python.
+- Các tệp từ `02` đến `08` mở cổng serial và gửi lệnh SCPI. Chỉ chạy khi có thiết bị/cổng serial tương thích và theo hướng dẫn của giảng viên. Một số bài thực hành dùng mô hình đã được chuẩn bị sẵn; mô hình này không mô phỏng toàn bộ Keithley 2000.
+- `03_test_commands.py` và `06_settings_and_measurement.py` có lệnh `*RST`, đưa thiết bị về trạng thái mặc định. **Không chạy lệnh này trên thiết bị thật nếu chưa được giảng viên cho phép.**
+- `08_error_queue_lab.py` cố ý gửi một số lệnh không hợp lệ để khảo sát error queue. Chỉ chạy trong bài thực hành có giám sát.
 
-Cấu hình thực hành trong buổi học:
 
-- Baud rate: **9600**
-- Data bits: **8**
-- Parity: **None**
-- Stop bits: **1** — **8N1**
-- Flow control: **NONE**
-- Terminator: **CR** (`\r`)
+## 6. Thông số serial dùng trong ví dụ (8N1)
 
-Chỉ một ứng dụng nên mở một cổng COM tại một thời điểm. Ngắt kết nối trong Hercules trước khi chạy chương trình Python.
+- **Baud rate:** 9600
+- **Data bits:** 8
+- **Parity:** None
+- **Stop bits:** 1
+- **Flow control:** NONE
+- **Terminator:** CR (`\r`)
 
-## Lưu ý về thiết bị và lệnh SCPI
+Tên cổng như `COM4` trong code chỉ là ví dụ; cổng thực tế tùy từng máy. Mỗi cổng COM chỉ nên được mở bởi một phần mềm tại một thời điểm. Hãy **Disconnect** trong Hercules trước khi chạy Python.
 
-- Ví dụ được dùng để học theo trình tự giao tiếp trong lớp; mô hình Arduino đã chuẩn bị sẵn không mô phỏng toàn bộ hành vi của Keithley Model 2000.
-- Lệnh `*RST` trong `03_test_commands.py` đưa thiết bị về trạng thái mặc định. Chỉ chạy theo hướng dẫn của giảng viên.
-- Không mặc định thang `SENS:VOLT:DC:RANG 5` là không hợp lệ: 5 V có thể là thang đo hợp lệ trên Keithley Model 2000. Đối chiếu manual của đúng thiết bị trước khi kết luận một lệnh gây lỗi.
-- Khi dùng Keithley thật, cần cáp hoặc bộ chuyển đổi RS-232 phù hợp. Không nối trực tiếp cổng DB9 RS-232 với chân RX/TX mức TTL của Arduino Uno.
-- Các giá trị minh họa trong code hoặc slide không mặc nhiên là số đo thực nghiệm.
-- Không nạp hoặc chỉnh sửa firmware Arduino trong phạm vi buổi học.
 
-## Lỗi thường gặp
+## 7. Xử lý lỗi thường gặp
 
-- **Không thấy cổng COM:** kiểm tra cáp dữ liệu, driver và **Device Manager → Ports (COM & LPT)**.
-- **Cổng đang bận:** ngắt kết nối trong Hercules và đóng ứng dụng khác đang dùng cổng.
-- **Không import được thư viện:** kiểm tra VS Code có chọn đúng `.venv`, sau đó chạy lại lệnh cài `requirements.txt`.
-- **Không nhận phản hồi:** kiểm tra đúng COM, thông số serial, terminator CR và loại lệnh; làm theo hướng dẫn của giảng viên.
+- **Không mở được link GitHub:** báo giảng viên để kiểm tra link hoặc quyền truy cập.
+- **Không tìm thấy cổng COM:** kiểm tra cáp dữ liệu, driver, rồi mở **Device Manager → Ports (COM & LPT)**.
+- **Cổng COM đang bận / Access Denied:** ngắt kết nối Hercules và đóng ứng dụng khác đang sử dụng cổng.
+- **Không nhận được phản hồi:** kiểm tra đúng cổng, baud rate 9600, cấu hình 8N1, terminator `\r`, và thực hiện các bước kiểm tra theo hướng dẫn của giảng viên.
+- **`ModuleNotFoundError`:** chọn đúng interpreter `.venv`, mở Terminal tại thư mục gốc và chạy lại `python -m pip install -r requirements.txt`.
